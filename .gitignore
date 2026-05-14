@@ -1,0 +1,23 @@
+# Model checkpoint dosyaları (çok büyük ~300MB her biri)
+*.pth.tar
+
+# İndirilen zip dosyaları
+*.zip
+
+# Çıkarılmış veri seti klasörü
+weedsgalore_extracted/
+weedsgalore_readme.md
+
+# Eğitim/Doğrulama verileri (büyük resim dosyaları)
+data/train/images/
+data/train/masks/
+data/val/images/
+data/val/masks/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Geçici dosyalar
+search_hf.py

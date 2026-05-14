@@ -1,0 +1,28 @@
+{
+  "miou": 31.37,
+  "pixel_acc": 94.1,
+  "avg_f1": 32.3,
+  "classes": [
+    {
+      "name": "Arka Plan",
+      "precision": 94.1,
+      "recall": 100.0,
+      "f1": 96.9,
+      "iou": 31.4
+    },
+    {
+      "name": "Ekin",
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "iou": 31.4
+    },
+    {
+      "name": "Yabanci Ot",
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "iou": 31.4
+    }
+  ]
+}

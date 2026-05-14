@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌿 Yabancı Ot Kontrol Sistemi - AI Dashboard</title>
+    <meta name="description" content="DeepLabV3+ tabanlı otonom yabancı ot tespit ve segmentasyon sistemi">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="bg-animation">
+        <div class="particle p1"></div>
+        <div class="particle p2"></div>
+        <div class="particle p3"></div>
+        <div class="particle p4"></div>
+        <div class="particle p5"></div>
+    </div>
+
+    <!-- Sidebar -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <span class="logo-icon">🌿</span>
+                <span class="logo-text">WeedAI</span>
+            </div>
+        </div>
+        <ul class="nav-links">
+            <li class="active" data-page="dashboard">
+                <span class="nav-icon">📊</span>
+                <span>Dashboard</span>
+            </li>
+            <li data-page="model">
+                <span class="nav-icon">🧠</span>
+                <span>Model Bilgisi</span>
+            </li>
+            <li data-page="predict">
+                <span class="nav-icon">🔍</span>
+                <span>Tahmin</span>
+            </li>
+            <li data-page="dataset">
+                <span class="nav-icon">📁</span>
+                <span>Veri Seti</span>
+            </li>
+        </ul>
+        <div class="sidebar-footer">
+            <div class="status-badge online">
+                <span class="dot"></span> Sistem Aktif
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Header -->
+        <header class="top-header">
+            <div class="header-left">
+                <button class="menu-toggle" id="menuToggle">☰</button>
+                <h1 class="page-title" id="pageTitle">Dashboard</h1>
+            </div>
+            <div class="header-right">
+                <div class="device-badge" id="deviceBadge">
+                    <span class="device-icon">⚡</span>
+                    <span id="deviceText">CUDA</span>
+                </div>
+                <div class="epoch-badge">
+                    <span>Epoch: </span><strong>25/25</strong>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dashboard Page -->
+        <section class="page active" id="page-dashboard">
+            <!-- Stats Cards -->
+            <div class="stats-grid">
+                <div class="stat-card" id="stat-miou">
+                    <div class="stat-icon green">📈</div>
+                    <div class="stat-info">
+                        <span class="stat-label">mIoU</span>
+                        <span class="stat-value" id="val-miou">0.00%</span>
+                    </div>
+                    <div class="stat-trend up">↑ En Önemli Metrik</div>
+                </div>
+                <div class="stat-card" id="stat-pixel">
+                    <div class="stat-icon blue">🎯</div>
+                    <div class="stat-info">
+                        <span class="stat-label">Pixel Accuracy</span>
+                        <span class="stat-value" id="val-pixel">0.00%</span>
+                    </div>
+                    <div class="stat-trend up">↑ Piksel Doğruluğu</div>
+                </div>
+                <div class="stat-card" id="stat-f1">
+                    <div class="stat-icon purple">⚖️</div>
+                    <div class="stat-info">
+                        <span class="stat-label">F1-Score (Ort.)</span>
+                        <span class="stat-value" id="val-f1">0.00%</span>
+                    </div>
+                    <div class="stat-trend">Harmonik Ortalama</div>
+                </div>
+                <div class="stat-card" id="stat-loss">
+                    <div class="stat-icon orange">📉</div>
+                    <div class="stat-info">
+                        <span class="stat-label">Son Loss</span>
+                        <span class="stat-value" id="val-loss">0.000</span>
+                    </div>
+                    <div class="stat-trend down">↓ CE + Dice Loss</div>
+                </div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="charts-row">
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>📉 Eğitim Loss Grafiği</h3>
+                        <span class="chart-subtitle">CrossEntropy + Dice Loss</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="lossChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <div class="chart-header">
+                        <h3>📊 mIoU Gelişimi</h3>
+                        <span class="chart-subtitle">Epoch bazlı ilerleme</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="miouChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Class Metrics Table -->
+            <div class="table-card">
+                <div class="chart-header">
+                    <h3>📋 Sınıf Bazlı Metrikler</h3>
+                    <span class="chart-subtitle">Precision / Recall / F1-Score</span>
+                </div>
+                <table class="metrics-table">
+                    <thead>
+                        <tr>
+                            <th>Sınıf</th>
+                            <th>Precision</th>
+                            <th>Recall</th>
+                            <th>F1-Score</th>
+                            <th>IoU</th>
+                        </tr>
+                    </thead>
+                    <tbody id="metricsBody">
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Model Info Page -->
+        <section class="page" id="page-model">
+            <div class="info-grid">
+                <div class="info-card large">
+                    <h3>🧠 Model Mimarisi</h3>
+                    <div class="architecture-diagram">
+                        <div class="arch-block encoder">
+                            <span class="arch-label">Encoder</span>
+                            <span class="arch-detail">ResNet-50</span>
+                            <span class="arch-sub">ImageNet Pre-trained</span>
+                        </div>
+                        <div class="arch-arrow">→</div>
+                        <div class="arch-block decoder">
+                            <span class="arch-label">Decoder</span>
+                            <span class="arch-detail">DeepLabV3+</span>
+                            <span class="arch-sub">ASPP Module</span>
+                        </div>
+                        <div class="arch-arrow">→</div>
+                        <div class="arch-block output">
+                            <span class="arch-label">Çıktı</span>
+                            <span class="arch-detail">3 Sınıf</span>
+                            <span class="arch-sub">256×256 Maske</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <h3>⚙️ Hiperparametreler</h3>
+                    <div class="param-list">
+                        <div class="param-item"><span>Batch Size</span><strong>8</strong></div>
+                        <div class="param-item"><span>Learning Rate</span><strong>1e-4</strong></div>
+                        <div class="param-item"><span>Epoch Sayısı</span><strong>25</strong></div>
+                        <div class="param-item"><span>Optimizer</span><strong>Adam</strong></div>
+                        <div class="param-item"><span>Scheduler</span><strong>CosineAnnealing</strong></div>
+                        <div class="param-item"><span>Mixed Precision</span><strong>Evet (FP16)</strong></div>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <h3>🎯 Loss Fonksiyonları</h3>
+                    <div class="param-list">
+                        <div class="param-item"><span>CrossEntropy</span><strong>Sınıf sınırları</strong></div>
+                        <div class="param-item"><span>Dice Loss</span><strong>Overlap kalitesi</strong></div>
+                        <div class="param-item"><span>Toplam</span><strong>CE + Dice (Hibrit)</strong></div>
+                    </div>
+                    <div class="loss-formula">
+                        <code>L = L<sub>CE</sub> + L<sub>Dice</sub></code>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <h3>🏷️ Sınıf Tanımları</h3>
+                    <div class="class-list">
+                        <div class="class-item">
+                            <div class="class-color" style="background: #2d3436;"></div>
+                            <span class="class-name">0 — Arka Plan (Toprak)</span>
+                        </div>
+                        <div class="class-item">
+                            <div class="class-color" style="background: #00b894;"></div>
+                            <span class="class-name">1 — Ekin (Bitki)</span>
+                        </div>
+                        <div class="class-item">
+                            <div class="class-color" style="background: #d63031;"></div>
+                            <span class="class-name">2 — Yabancı Ot</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <h3>🔄 Augmentation</h3>
+                    <div class="param-list">
+                        <div class="param-item"><span>HorizontalFlip</span><strong>p=0.5</strong></div>
+                        <div class="param-item"><span>VerticalFlip</span><strong>p=0.5</strong></div>
+                        <div class="param-item"><span>RandomRotate90</span><strong>p=0.5</strong></div>
+                        <div class="param-item"><span>ColorJitter</span><strong>p=0.5</strong></div>
+                        <div class="param-item"><span>Normalize</span><strong>ImageNet μ/σ</strong></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Predict Page -->
+        <section class="page" id="page-predict">
+            <div class="predict-container">
+                <div class="predict-header">
+                    <h2>🔍 Gerçek Zamanlı AI Tahmin</h2>
+                    <p>DeepLabV3+ modeli ile tarla görüntüsü segmentasyonu</p>
+                </div>
+
+                <div class="predict-area">
+                    <div class="upload-zone" id="uploadZone">
+                        <div class="upload-icon">📸</div>
+                        <p>Görüntü sürükleyin veya tıklayın</p>
+                        <span class="upload-hint">JPG, PNG — 256×256 önerilir</span>
+                        <input type="file" id="fileInput" accept="image/*" hidden>
+                    </div>
+
+                    <div class="predict-results" id="predictResults" style="display:none;">
+                        <div class="result-panel">
+                            <h4>Orijinal Görüntü</h4>
+                            <canvas id="originalCanvas" width="256" height="256"></canvas>
+                        </div>
+                        <div class="result-panel">
+                            <h4>Segmentasyon Maskesi</h4>
+                            <canvas id="maskCanvas" width="256" height="256"></canvas>
+                        </div>
+                        <div class="result-panel">
+                            <h4>Overlay (Üst Üste)</h4>
+                            <canvas id="overlayCanvas" width="256" height="256"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="predict-legend" id="predictLegend" style="display:none;">
+                        <div class="legend-item"><span class="legend-color" style="background:#2d3436;"></span> Arka Plan</div>
+                        <div class="legend-item"><span class="legend-color" style="background:#00b894;"></span> Ekin</div>
+                        <div class="legend-item"><span class="legend-color" style="background:#d63031;"></span> Yabancı Ot</div>
+                    </div>
+
+                    <div class="predict-actions">
+                        <button class="btn btn-primary" id="btnDemo">🎲 Demo Görüntü Oluştur</button>
+                        <button class="btn btn-primary" id="btnRealTest" style="background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));">🌾 Gerçek Test Resmi Getir</button>
+                        <button class="btn btn-secondary" id="btnClear" style="display:none;">🗑️ Temizle</button>
+                    </div>
+
+                    <div class="predict-stats" id="predictStats" style="display:none;">
+                        <div class="predict-stat">
+                            <span class="ps-label">Arka Plan</span>
+                            <div class="ps-bar"><div class="ps-fill bg" id="psBg"></div></div>
+                            <span class="ps-value" id="psValBg">0%</span>
+                        </div>
+                        <div class="predict-stat">
+                            <span class="ps-label">Ekin</span>
+                            <div class="ps-bar"><div class="ps-fill crop" id="psCrop"></div></div>
+                            <span class="ps-value" id="psValCrop">0%</span>
+                        </div>
+                        <div class="predict-stat">
+                            <span class="ps-label">Yabancı Ot</span>
+                            <div class="ps-bar"><div class="ps-fill weed" id="psWeed"></div></div>
+                            <span class="ps-value" id="psValWeed">0%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dataset Page -->
+        <section class="page" id="page-dataset">
+            <div class="dataset-grid">
+                <div class="info-card">
+                    <h3>📂 Eğitim Verisi</h3>
+                    <div class="dataset-stat-big">
+                        <span class="ds-number" id="trainCount">1000</span>
+                        <span class="ds-label">Görüntü</span>
+                    </div>
+                    <div class="param-list">
+                        <div class="param-item"><span>Boyut</span><strong>256×256</strong></div>
+                        <div class="param-item"><span>Format</span><strong>JPG + PNG Maske</strong></div>
+                        <div class="param-item"><span>Augmentation</span><strong>5 Teknik</strong></div>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <h3>📂 Doğrulama Verisi</h3>
+                    <div class="dataset-stat-big">
+                        <span class="ds-number" id="valCount">5</span>
+                        <span class="ds-label">Görüntü</span>
+                    </div>
+                    <div class="param-list">
+                        <div class="param-item"><span>Boyut</span><strong>256×256</strong></div>
+                        <div class="param-item"><span>Format</span><strong>JPG + PNG Maske</strong></div>
+                        <div class="param-item"><span>Augmentation</span><strong>Yalnız Normalize</strong></div>
+                    </div>
+                </div>
+
+                <div class="info-card large">
+                    <h3>💾 Kaydedilen Modeller</h3>
+                    <div class="model-list" id="modelList">
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <h3>📊 Veri Dağılımı (Simüle)</h3>
+                    <canvas id="distChart" height="200"></canvas>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
